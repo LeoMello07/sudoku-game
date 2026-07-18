@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Sudoku</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Cabeçalho: título e alternadores de som/tema -->
+    <header class="topbar">
+      <h1>Sudoku</h1>
+      <div class="topbar-actions">
+        <button id="btn-sound" class="icon-btn" type="button" aria-label="Desligar sons">🔊</button>
+        <button id="btn-theme" class="icon-btn" type="button" aria-label="Ativar modo escuro">🌙</button>
+      </div>
+    </header>
+
+    <!-- Seleção de dificuldade e novo jogo -->
+    <section class="toolbar">
+      <select id="difficulty" aria-label="Dificuldade">
+        <option value="easy">Fácil</option>
+        <option value="medium">Médio</option>
+        <option value="hard">Difícil</option>
+        <option value="expert">Expert</option>
+      </select>
+      <button id="btn-new" class="btn primary" type="button">Novo Jogo</button>
+    </section>
+
+    <!-- Estatísticas da partida -->
+    <section class="statusbar">
+      <div class="stat">
+        <span class="stat-label">Nível</span>
+        <span id="stat-difficulty" class="stat-value">—</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Tempo</span>
+        <span id="stat-timer" class="stat-value">00:00</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Dicas</span>
+        <span id="stat-hints" class="stat-value">3</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="auto-check" checked />
+        <span>Mostrar erros</span>
+      </label>
+    </section>
+
+    <!-- Tabuleiro 9x9: ocupa todo o espaço restante da tela, sem rolagem -->
+    <div class="board-wrap">
+      <div id="board" class="board" role="grid" aria-label="Tabuleiro de Sudoku"></div>
+    </div>
+
+    <!-- Teclado numérico de toque (células criadas pelo script) -->
+    <div id="numpad" class="numpad"></div>
+
+    <!-- Barra de ações no padrão dos apps de Sudoku -->
+    <section class="actions">
+      <button id="btn-restart" class="action" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>
+        <span>Reiniciar</span>
+      </button>
+      <button id="btn-hint" class="action" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5.76.76 1.23 1.52 1.41 2.5" /><path d="M9 18h6" /><path d="M10 22h4" /></svg>
+        <span>Dica</span>
+      </button>
+      <button id="btn-check" class="action" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.8 10A10 10 0 1 1 17 3.34" /><path d="m9 11 3 3L22 4" /></svg>
+        <span>Verificar</span>
+      </button>
+      <button id="btn-erase" class="action" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" /><path d="M22 21H7" /><path d="m5 11 9 9" /></svg>
+        <span>Apagar</span>
+      </button>
+      <button id="btn-solve" class="action" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" /></svg>
+        <span>Resolver</span>
+      </button>
+      <button id="btn-annotation" class="action" type="button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
+        <span>Anotação</span>
+      </button>
+    </section>
+  </div>
+
+  <!-- Aviso flutuante -->
+  <div id="toast" class="toast" role="status"></div>
+
+  <!-- Modal de vitória -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-emoji">🎉</div>
+      <h2 id="modal-title">Parabéns!</h2>
+      <p class="modal-text">Você concluiu o Sudoku!</p>
+      <div class="modal-stats">
+        <div class="stat">
+          <span class="stat-label">Tempo</span>
+          <span id="win-time" class="stat-value">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Dificuldade</span>
+          <span id="win-difficulty" class="stat-value">—</span>
+        </div>
+      </div>
+      <button id="btn-play-again" class="btn primary" type="button">Jogar novamente</button>
+    </div>
+  </div>
+
+  <!-- Bundle clássico (IIFE): funciona abrindo o arquivo direto do disco -->
+  <script src="dist/bundle.js"></script>
+</body>
+</html>

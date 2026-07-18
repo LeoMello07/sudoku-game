@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+
+# Saída de build web embarcada nos apps nativos
+www/
+
+# Artefatos nativos
+ios/App/Pods/
+ios/DerivedData/
