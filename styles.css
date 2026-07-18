@@ -1,0 +1,656 @@
+/* ==========================================================================
+   Sudoku — layout mobile-first de aplicativo (PWA)
+   A tela inteira é ocupada sem rolagem: o tabuleiro flexiona para preencher
+   o espaço entre o cabeçalho e o teclado, como nos apps das lojas.
+   ========================================================================== */
+
+:root {
+  --bg: #f2f4f8;
+  --surface: #ffffff;
+  --surface-2: #f7f8fb;
+  --text: #1e2430;
+  --text-soft: #6b7280;
+  --accent: #3b82f6;
+  --accent-strong: #1d4ed8;
+  --accent-soft: #dbeafe;
+  --line: #d9dee8;
+  --line-strong: #8fa0ba;
+  --peer: #edf1f8;
+  --same: #d7e4fb;
+  --error: #dc2626;
+  --error-bg: #fee2e2;
+  --shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+  --radius: 14px;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg: #0f141c;
+  --surface: #1a212c;
+  --surface-2: #202938;
+  --text: #e5e9f0;
+  --text-soft: #8a93a6;
+  --accent: #60a5fa;
+  --accent-strong: #93c5fd;
+  --accent-soft: #1e3a5f;
+  --line: #2b3547;
+  --line-strong: #55647f;
+  --peer: #212b3b;
+  --same: #274768;
+  --error: #f87171;
+  --error-bg: #45222a;
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.25s ease, color 0.25s ease;
+  -webkit-font-smoothing: antialiased;
+  /* Comportamento de app: sem pull-to-refresh nem zoom por duplo toque */
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.busy {
+  cursor: progress;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  touch-action: manipulation;
+}
+
+/* --------------------------------------------------------------------------
+   Casca do app: coluna que ocupa exatamente a altura da tela
+   -------------------------------------------------------------------------- */
+
+.app {
+  height: 100vh;
+  height: 100dvh; /* estável quando a barra do navegador some no celular */
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px;
+  /* respeita notch e barra de gestos quando instalado como app */
+  padding-top: max(10px, env(safe-area-inset-top));
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
+
+/* --------------------------------------------------------------------------
+   Cabeçalho
+   -------------------------------------------------------------------------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar h1 {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 1rem;
+  display: grid;
+  place-items: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.25s ease;
+}
+
+.icon-btn:active {
+  transform: scale(0.92);
+}
+
+/* --------------------------------------------------------------------------
+   Dificuldade + Novo Jogo
+   -------------------------------------------------------------------------- */
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+select {
+  flex: 1;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+select:focus {
+  border-color: var(--accent);
+}
+
+.btn {
+  padding: 9px 18px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   Estatísticas
+   -------------------------------------------------------------------------- */
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 7px 14px;
+  box-shadow: var(--shadow);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.stat-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
+}
+
+.stat-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.switch {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.switch input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   Tabuleiro: quadrado máximo que cabe no espaço restante
+   -------------------------------------------------------------------------- */
+
+.board-wrap {
+  flex: 1;
+  min-height: 0;
+  container-type: size;
+  display: grid;
+  place-items: center;
+}
+
+.board {
+  width: min(100cqw, 100cqh);
+  aspect-ratio: 1;
+  container-type: size;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  background: var(--surface);
+  border: 2px solid var(--line-strong);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  -webkit-touch-callout: none;
+}
+
+.cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  /* fonte proporcional ao tamanho real do tabuleiro (container query) */
+  font-size: clamp(0.9rem, 6.2cqw, 2rem);
+  font-weight: 500;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  transition: background 0.12s ease, color 0.12s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cell-value {
+  display: grid;
+  place-items: center;
+}
+
+.cell-notes {
+  position: absolute;
+  inset: 2px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  align-items: center;
+  justify-items: center;
+  color: var(--accent);
+  font-size: clamp(0.42rem, 2.35cqw, 0.78rem);
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.cell-note {
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell.has-value .cell-notes {
+  display: none;
+}
+
+.cell:nth-child(9n) {
+  border-right: none;
+}
+
+.cell:nth-child(n + 73) {
+  border-bottom: none;
+}
+
+/* Separação visual dos blocos 3x3 */
+.cell.edge-right {
+  border-right: 2px solid var(--line-strong);
+}
+
+.cell.edge-bottom {
+  border-bottom: 2px solid var(--line-strong);
+}
+
+/* Estados de destaque (a ordem define a precedência visual) */
+.cell.peer {
+  background: var(--peer);
+}
+
+.cell.same {
+  background: var(--same);
+  font-weight: 700;
+}
+
+.cell.selected {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.cell.fixed {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.cell.user {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.cell.error {
+  color: var(--error);
+  background: var(--error-bg);
+}
+
+.cell.error.selected {
+  box-shadow: inset 0 0 0 2px var(--error);
+}
+
+.cell:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+@keyframes pop {
+  40% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.cell.pop {
+  animation: pop 0.22s ease;
+}
+
+@keyframes shake {
+  20%,
+  60% {
+    transform: translateX(-3px);
+  }
+  40%,
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+.cell.shake {
+  animation: shake 0.25s ease;
+}
+
+/* --------------------------------------------------------------------------
+   Teclado numérico de toque
+   -------------------------------------------------------------------------- */
+
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 5px;
+}
+
+.key {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 7px 0 5px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.key:active:not(:disabled) {
+  background: var(--accent-soft);
+  transform: scale(0.94);
+}
+
+.key:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.key-digit {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.key-count {
+  font-size: 0.6rem;
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   Barra de ações (ícone + rótulo, como nos apps de Sudoku)
+   -------------------------------------------------------------------------- */
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 2px 6px;
+  border-radius: 12px;
+  color: var(--text-soft);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 0.66rem;
+  font-weight: 600;
+  transition: transform 0.12s ease, color 0.12s ease, background 0.12s ease;
+}
+
+.action svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.action:active {
+  transform: scale(0.94);
+  color: var(--accent);
+}
+
+.action.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* --------------------------------------------------------------------------
+   Toast
+   -------------------------------------------------------------------------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 16px);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  max-width: min(90vw, 420px);
+  white-space: nowrap;
+  z-index: 20;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.toast.success {
+  border-left-color: #22c55e;
+}
+
+.toast.error {
+  border-left-color: var(--error);
+}
+
+/* --------------------------------------------------------------------------
+   Modal de vitória
+   -------------------------------------------------------------------------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 30;
+  padding: 16px;
+}
+
+.modal-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 30px 34px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+  transform: scale(0.9);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-width: 340px;
+  width: 100%;
+}
+
+.modal-overlay.visible .modal {
+  transform: scale(1);
+}
+
+.modal-emoji {
+  font-size: 3rem;
+  margin-bottom: 8px;
+}
+
+.modal h2 {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.modal-text {
+  color: var(--text-soft);
+  margin-bottom: 18px;
+}
+
+.modal-stats {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 20px;
+}
+
+.modal-stats .stat {
+  align-items: center;
+}
+
+.modal-stats .stat-value {
+  font-size: 1.05rem;
+}
+
+/* --------------------------------------------------------------------------
+   Ajustes para telas maiores (tablet/desktop): mais respiro, mesmos blocos
+   -------------------------------------------------------------------------- */
+
+@media (min-width: 640px) and (min-height: 720px) {
+  .app {
+    gap: 14px;
+    padding: 20px 16px;
+  }
+
+  .topbar h1 {
+    font-size: 1.8rem;
+  }
+
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .icon-btn:hover,
+  .key:hover:not(:disabled),
+  .action:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-1px);
+  }
+
+  .action:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .btn.primary:hover {
+    background: var(--accent-strong);
+    border-color: var(--accent-strong);
+  }
+
+  .statusbar {
+    padding: 10px 16px;
+  }
+
+  .stat-value {
+    font-size: 1.05rem;
+  }
+
+  .action {
+    font-size: 0.75rem;
+    padding: 10px 4px 8px;
+  }
+
+  .action svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .key {
+    padding: 9px 0 7px;
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "sudoku-game",
+  "version": "1.0.0",
+  "description": "Sudoku moderno em TypeScript — gerador com solução única, dark mode, sons e salvamento automático.",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/main.ts --bundle --format=iife --outfile=dist/bundle.js",
+    "build:www": "npm run build && rm -rf www && mkdir www && cp index.html styles.css www/ && cp -R dist www/dist",
+    "sync": "npm run build:www && cap sync",
+    "watch": "esbuild src/main.ts --bundle --format=iife --outfile=dist/bundle.js --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.4.2",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
+    "@capacitor/ios": "^8.4.2"
+  }
+}
